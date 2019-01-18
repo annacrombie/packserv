@@ -24,6 +24,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler', '~> 2'
   spec.add_development_dependency 'rake', '~> 12'
   spec.add_development_dependency 'rspec', '~> 3'
+  spec.add_development_dependency 'simplecov'
+
 
   spec.add_runtime_dependency 'msgpack', '~> 1.2'
 end

@@ -1,4 +1,6 @@
-require 'bundler/setup'
+require 'simplecov'
+SimpleCov.start
+
 require 'packserv'
 
 require_relative 'support/starters'
