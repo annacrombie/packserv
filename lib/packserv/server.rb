@@ -32,13 +32,13 @@ module PackServ
       packer   = IOPacker.new(client)
       outgoing = Queue.new
 
-      @mailboxes[client.object_id] = outgoing
-
       @threads.add(Thread.new { loop { packer.pack(outgoing.pop) } })
+
+      @mailboxes[client.object_id] = outgoing
     end
 
     def handle(client)
-      setup_mailbox(client)
+      outgoing = setup_mailbox(client)
 
       IOUnpacker.each_from(client) do |msg|
         response = handler.(msg)
