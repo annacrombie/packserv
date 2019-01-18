@@ -11,7 +11,7 @@ module PackServ
       @threads = ThreadGroup.new
     end
 
-    def server_event(data)
+    def event(data)
       @event_queue.push(data)
     end
 
