@@ -5,7 +5,7 @@ module PackServ
     end
 
     def pack(obj)
-      write(MessagePack.pack(@obj_queue.pop))
+      write(MessagePack.pack(obj))
     end
 
     private
