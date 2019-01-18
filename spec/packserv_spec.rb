@@ -18,8 +18,13 @@ RSpec.describe PackServ do
     end
 
     it 'can communicate' do
-      expect(@client.send('hello')).to eq 'hi'
-      expect(@client.send('goodbye')).to eq 'see ya'
+      expect(client.send('hello')).to eq 'hi'
+      expect(client.send('goodbye')).to eq 'see ya'
+    end
+
+    it 'can send events' do
+      server.event('an event')
+      expect(last_event).to eq 'an event'
     end
   end
 end
