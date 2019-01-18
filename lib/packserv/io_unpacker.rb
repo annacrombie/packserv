@@ -5,7 +5,11 @@ module PackServ
         iou = IOUnpacker.new(io, proto)
 
         loop do
-          yield(MessagePack.unpack(iou.get_frame))
+          frame = iou.get_frame
+
+          break if frame.empty?
+
+          yield(MessagePack.unpack(frame))
         end
       end
     end
@@ -22,7 +26,7 @@ module PackServ
     private
 
     def get_frame_length
-      @io.read(@proto::HEADER_LENGTH).to_i(16)
+      @io.read(@proto::HEADER_LENGTH).then { |g| g.nil? ? '' : g }.to_i(16)
     end
   end
 end
