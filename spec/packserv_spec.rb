@@ -1,6 +1,6 @@
-RSpec.describe Packserv do
+RSpec.describe PackServ do
   it 'has a version number' do
-    expect(Packserv::VERSION).not_to be nil
+    expect(PackServ::VERSION).not_to be nil
   end
 
   context 'all together' do
