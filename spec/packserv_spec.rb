@@ -3,30 +3,23 @@ RSpec.describe PackServ do
     expect(PackServ::VERSION).not_to be nil
   end
 
+  context 'the client dies' do
+  end
+
   context 'all together' do
     before(:all) do
-      @server = PackServ.serve(12345)
-
-      @server.handler = lambda do |message|
-        case message
-        when 'hello'
-          'hi'
-        when 'goodbye'
-          'see ya'
-        end
-      end
-
-      @client = PackServ.connect('localhost', 12345)
+      start_server
+      connect_client
     end
 
     after(:all) do
-      @client.disconnect
-      @server.stop
+      disconnect_client
+      stop_server
     end
 
     it 'can communicate' do
-      expect(@client.send('hello')).to eq('hi')
-      expect(@client.send('goodbye')).to eq('see ya')
+      expect(@client.send('hello')).to eq 'hi'
+      expect(@client.send('goodbye')).to eq 'see ya'
     end
   end
 end
