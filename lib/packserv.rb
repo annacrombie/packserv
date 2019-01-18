@@ -1,3 +1,7 @@
+require 'msgpack'
+
+require 'packserv/client'
+require 'packserv/server'
 require 'packserv/version'
 
 module PackServ
