@@ -1,4 +1,6 @@
 # Packserv
+[![Build Status](https://travis-ci.org/annacrombie/packserv.svg?branch=master)](https://travis-ci.org/annacrombie/packserv)
+[![Coverage Status](https://coveralls.io/repos/github/annacrombie/packserv/badge.svg?branch=master)](https://coveralls.io/github/annacrombie/packserv?branch=master)
 
 A simple server/client
 
