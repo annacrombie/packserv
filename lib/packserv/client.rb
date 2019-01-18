@@ -51,7 +51,7 @@ module PackServ
           @event_queue
         else
           @response_queue
-        end
+        end.push(msg)
       end
     end
   end
