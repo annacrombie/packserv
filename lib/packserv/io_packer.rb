@@ -11,7 +11,7 @@ module PackServ
     private
 
     def frame_length(packed)
-      sprintf('%08x', packed.bytesize)
+      sprintf(Protocol::HEADER_FORMAT, packed.bytesize)
     end
 
     def write(packed)

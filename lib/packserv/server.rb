@@ -2,7 +2,9 @@ module PackServ
   class Server
     attr_accessor :handler
 
-    def initialize
+    def initialize(proto)
+      @protocol ||= DefaultProtocol
+
       @handler = ->(_) {}
       @mailboxes = {}
       @event_queue = Queue.new

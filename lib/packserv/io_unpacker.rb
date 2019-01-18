@@ -21,7 +21,7 @@ module PackServ
     private
 
     def get_frame_length
-      @io.read(8).to_i(16)
+      @io.read(Protocol::HEADER_LENGTH).to_i(16)
     end
   end
 end
