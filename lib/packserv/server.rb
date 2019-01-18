@@ -6,6 +6,7 @@ module PackServ
       @handler = ->(_) {}
       @mailboxes = {}
       @event_queue = Queue.new
+      @threads = ThreadGroup.new
     end
 
     def server_event(data)
@@ -15,15 +16,14 @@ module PackServ
     def serve(port)
       server = TCPServer.new(port)
 
-      @server_thread = Thread.new { _serve(server) }
-      @event_thread = Thread.new { deliver_events }
+      @threads.add(Thread.new { _serve(server) })
+      @threads.add(Thread.new { deliver_events })
 
       self
     end
 
     def stop
-      @server_thread&.exit
-      @event_thread&.exit
+      @threads.list.map(&:exit)
     end
 
     private
@@ -34,7 +34,7 @@ module PackServ
 
       @mailboxes[client.objectid] = outgoing
 
-      Thread.new { loop { packer.pack(outgoing.pop) } }
+      @threads.add(Thread.new { loop { packer.pack(outgoing.pop) } })
     end
 
     def handle(client)
@@ -56,7 +56,7 @@ module PackServ
 
     def _serve(server)
       loop do
-        Thread.new(server.accept) { |client| handle(client) }
+        @threads.add(Thread.new(server.accept) { |client| handle(client) })
       end
     end
   end
