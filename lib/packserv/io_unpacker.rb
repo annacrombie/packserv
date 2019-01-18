@@ -22,7 +22,7 @@ module PackServ
     private
 
     def get_frame_length
-      @io.read(@proto.const_get(:HEADER_LENGTH)).to_i(16)
+      @io.read(@proto::HEADER_LENGTH).to_i(16)
     end
   end
 end
