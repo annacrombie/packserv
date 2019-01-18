@@ -17,8 +17,8 @@ module Starters
     @client_events.pop
   end
 
-  def start_server(&handler)
-    @server = PackServ.serve(12345)
+  def start_server(port = 12345, &handler)
+    @server = PackServ.serve(port)
 
     @server.handler = block_given? ? handler : method(:server_handler)
   end
@@ -27,9 +27,9 @@ module Starters
     @server.stop
   end
 
-  def connect_client(&handler)
+  def connect_client(port = 12345, &handler)
     @client_events = Queue.new
-    @client = PackServ.connect('localhost', 12345)
+    @client = PackServ.connect('localhost', port)
     @client.handler = block_given? ? handler : method(:client_event_handler)
   end
 
