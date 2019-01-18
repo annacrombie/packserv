@@ -2,13 +2,13 @@ module PackServ
   class Client
     attr_accessor :handler
 
-    def initialize(host, port)
+    def initialize
       @handler = ->(_) {}
       @event_queue = Queue.new
       @response_queue = Queue.new
     end
 
-    def connect
+    def connect(host, port)
       server = TCPSocket.new(host, port)
 
       Thread.new { _connect(server) }

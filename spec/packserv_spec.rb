@@ -4,7 +4,7 @@ RSpec.describe PackServ do
   end
 
   context 'all together' do
-    server = PackServ.server(12345)
+    server = PackServ.serve(12345)
 
     server.handler = lambda do |message|
       case message
@@ -15,7 +15,7 @@ RSpec.describe PackServ do
       end
     end
 
-    client = PackServ.client('localhost', 12345)
+    client = PackServ.connect('localhost', 12345)
 
     it 'can communicate' do
       expect(client.send('hello')).to eq('hi')

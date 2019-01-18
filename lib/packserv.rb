@@ -1,3 +1,4 @@
+require 'socket'
 require 'msgpack'
 
 require 'packserv/client'
@@ -10,11 +11,11 @@ require 'packserv/version'
 module PackServ
   class << self
     def connect(host, port)
-      Client.new(host, port).connect
+      Client.new.connect(host, port)
     end
 
     def serve(port)
-      Server.new(port).serve
+      Server.new.serve(port)
     end
   end
 end

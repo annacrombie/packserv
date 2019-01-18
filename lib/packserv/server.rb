@@ -2,7 +2,7 @@ module PackServ
   class Server
     attr_accessor :handler
 
-    def initialize(port)
+    def initialize
       @handler = ->(_) {}
       @mailboxes = {}
       @event_queue = Queue.new
@@ -12,8 +12,10 @@ module PackServ
       @event_queue.push(data)
     end
 
-    def serve
-      @server_thread = Thread.new { _serve }
+    def serve(port)
+      server = TCPServer.new(port)
+
+      @server_thread = Thread.new { _serve(server) }
       @event_thread = Thread.new { deliver_events }
 
       self
@@ -52,11 +54,9 @@ module PackServ
       end
     end
 
-    def _serve
-      socket = TCPServer.new(port)
-
+    def _serve(server)
       loop do
-        Thread.new(socket.accept) { |client| handle(client) }
+        Thread.new(server.accept) { |client| handle(client) }
       end
     end
   end
