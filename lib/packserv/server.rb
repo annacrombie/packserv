@@ -2,11 +2,11 @@ module PackServ
   class Server
     attr_accessor :handler
 
-    def initialize(proto)
-      @protocol ||= DefaultProtocol
+    def initialize(proto = nil)
+      @proto = proto || DefaultProtocol
 
       @handler = ->(_) {}
-      @mailboxes = {}
+      @packers = {}
       @event_queue = Queue.new
       @threads = ThreadGroup.new
     end
@@ -31,19 +31,23 @@ module PackServ
     private
 
     def setup_mailbox(client)
-      packer   = IOPacker.new(client)
+      packer   = IOPacker.new(client, @proto)
       outgoing = Queue.new
 
-      @threads.add(Thread.new { loop { packer.pack(outgoing.pop) } })
+      @threads.add(Thread.new do
+        loop { packer.pack(@proto.create(outgoing.pop)) }
+      end)
 
-      @mailboxes[client.object_id] = outgoing
+      @packers[client.object_id] = packer
+
+      outgoing
     end
 
     def handle(client)
       outgoing = setup_mailbox(client)
 
-      IOUnpacker.each_from(client) do |msg|
-        response = handler.(msg)
+      IOUnpacker.each_from(client, @proto) do |msg|
+        response = handler.(@proto.extract(msg))
 
         outgoing.push(response)
       end
@@ -52,7 +56,7 @@ module PackServ
     def deliver_events
       loop do
         data = @event_queue.pop
-        @mailboxes.each { |_, v| v.push(data) }
+        @packers.each { |_, k| k.pack(@proto.create(data, 'event')) }
       end
     end
 

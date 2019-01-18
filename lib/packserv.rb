@@ -2,6 +2,7 @@ require 'socket'
 require 'msgpack'
 
 require 'packserv/client'
+require 'packserv/default_protocol'
 require 'packserv/exceptions'
 require 'packserv/io_packer'
 require 'packserv/io_unpacker'

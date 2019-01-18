@@ -5,7 +5,7 @@ module PackServ
 
     module_function
 
-    def create(obj, type, id = nil)
+    def create(obj, type = '', id = nil)
       {
         'ver'     => PackServ::VERSION,
         'id'      => id || obj.object_id,

@@ -1,6 +1,7 @@
 module PackServ
   class IOPacker
-    def initialize(io)
+    def initialize(io, proto)
+      @proto = proto
       @io = io
     end
 
@@ -11,7 +12,7 @@ module PackServ
     private
 
     def frame_length(packed)
-      sprintf(Protocol::HEADER_FORMAT, packed.bytesize)
+      sprintf(@proto::HEADER_FORMAT, packed.bytesize)
     end
 
     def write(packed)

@@ -2,7 +2,9 @@ module PackServ
   class Client
     attr_accessor :handler
 
-    def initialize
+    def initialize(proto = nil)
+      @proto = proto || DefaultProtocol
+
       @handler = ->(_) {}
       @event_queue = Queue.new
       @response_queue = Queue.new
@@ -38,20 +40,22 @@ module PackServ
     end
 
     def setup_mailbox(server)
-      packer = IOPacker.new(server)
-      @threads.add(Thread.new { loop { packer.pack(@outgoing_queue.pop) } })
+      packer = IOPacker.new(server, @proto)
+      @threads.add(Thread.new do
+        loop { packer.pack(@proto.create(@outgoing_queue.pop)) }
+      end)
     end
 
     def _connect(server)
       setup_mailbox(server)
 
-      IOUnpacker.each_from(server) do |msg|
-        case msg['kind']
+      IOUnpacker.each_from(server, @proto) do |msg|
+        case msg['type']
         when 'event'
           @event_queue
         else
           @response_queue
-        end.push(msg)
+        end.push(@proto.extract(msg))
       end
     end
   end

@@ -1,8 +1,8 @@
 module PackServ
   class IOUnpacker
     class << self
-      def each_from(io)
-        iou = IOUnpacker.new(io)
+      def each_from(io, proto)
+        iou = IOUnpacker.new(io, proto)
 
         loop do
           yield(MessagePack.unpack(iou.get_frame))
@@ -10,7 +10,8 @@ module PackServ
       end
     end
 
-    def initialize(io)
+    def initialize(io, proto)
+      @proto = proto
       @io = io
     end
 
@@ -21,7 +22,7 @@ module PackServ
     private
 
     def get_frame_length
-      @io.read(Protocol::HEADER_LENGTH).to_i(16)
+      @io.read(@proto.const_get(:HEADER_LENGTH)).to_i(16)
     end
   end
 end
