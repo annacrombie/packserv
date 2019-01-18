@@ -18,7 +18,7 @@ module PackServ
     end
 
     def send(obj)
-      @outgoing.push(obj)
+      @mailbox.push(obj)
 
       @response_queue.pop
     end
