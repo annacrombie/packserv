@@ -21,8 +21,8 @@ module PackServ
     end
 
     def disconnect
-      @server.close
       @threads.list.map(&:exit)
+      @server.close
     end
 
     def send(obj)
