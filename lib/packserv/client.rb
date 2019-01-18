@@ -39,7 +39,7 @@ module PackServ
 
     def setup_mailbox(server)
       packer = IOPacker.new(server)
-      @threads.add(Thread.new { loop { packer.write(@outgoing_queue.pop) } })
+      @threads.add(Thread.new { loop { packer.pack(@outgoing_queue.pop) } })
     end
 
     def _connect(server)
