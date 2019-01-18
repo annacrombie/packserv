@@ -32,7 +32,7 @@ module PackServ
       packer   = IOPacker.new(client)
       outgoing = Queue.new
 
-      @mailboxes[client.objectid] = outgoing
+      @mailboxes[client.object_id] = outgoing
 
       @threads.add(Thread.new { loop { packer.pack(outgoing.pop) } })
     end
