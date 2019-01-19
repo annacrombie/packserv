@@ -9,31 +9,22 @@ module Starters
     end
   end
 
-  def client_event_handler(event)
-    @client_events.push(event)
-  end
-
-  def last_event
-    @client_events.pop
-  end
-
   def start_server(port = 12345, &handler)
-    @server = PackServ.serve(port)
+    server = PackServ.serve(port)
 
-    @server.handler = block_given? ? handler : method(:server_handler)
-  end
+    server.handler = block_given? ? handler : method(:server_handler)
 
-  def stop_server
-    @server.stop
+    server
   end
 
   def connect_client(port = 12345, &handler)
-    @client_events = Queue.new
-    @client = PackServ.connect('localhost', port)
-    @client.handler = block_given? ? handler : method(:client_event_handler)
-  end
+    client_events = Queue.new
 
-  def disconnect_client
-    @client.disconnect
+    client = PackServ.connect('localhost', port)
+    client.handler = block_given? ? handler : lambda do |event|
+      client_events.push(event)
+    end
+
+    [client_events, client]
   end
 end
