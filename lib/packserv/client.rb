@@ -27,7 +27,7 @@ module PackServ
       @server.close
     end
 
-    def send(obj)
+    def transmit(obj)
       @outgoing_queue.push(obj)
 
       @response_queue.pop
