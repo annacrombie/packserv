@@ -20,12 +20,12 @@ RSpec.describe PackServ do
       after(:all) { @client.disconnect }
 
       it 'can communicate' do
-        expect(client.send('hello')).to eq 'hi'
-        expect(client.send('goodbye')).to eq 'see ya'
+        expect(client.transmit('hello')).to eq 'hi'
+        expect(client.transmit('goodbye')).to eq 'see ya'
       end
 
       it 'can send events' do
-        server.event('an event')
+        server.transmit('an event')
         expect(@events.pop).to eq 'an event'
       end
     end
@@ -38,7 +38,7 @@ RSpec.describe PackServ do
 
       @server_1.stop
 
-      client.send('msg')
+      client.transmit('msg')
     end
   end
 end
