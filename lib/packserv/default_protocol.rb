@@ -5,6 +5,12 @@ module PackServ
 
     module_function
 
+    def valid?(msg)
+      msg.is_a?(Hash) &&
+        msg.keys == %w[ver id type payload] &&
+        msg['ver'] == PackServ::VERSION
+    end
+
     def create(obj, type = '', id = nil)
       {
         'ver'     => PackServ::VERSION,
@@ -12,6 +18,10 @@ module PackServ
         'type'    => type,
         'payload' => obj
       }
+    end
+
+    def extract_id(msg)
+      msg['id']
     end
 
     def extract(msg)
