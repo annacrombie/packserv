@@ -5,7 +5,7 @@ module PackServ
 
       @death_handler = @event_handler = ->(_) {}
       @event_queue = Queue.new
-      @response_queue = Queue.new
+      @response_queues = {}
       @outgoing_queue = Queue.new
 
       @threads = []
@@ -44,9 +44,14 @@ module PackServ
     def transmit(obj)
       return unless alive?
 
+      rq = @response_queues[obj.object_id] = Queue.new
+
       @outgoing_queue.push(obj)
 
-      @response_queue.pop
+      val = rq.pop
+      @response_queues.delete(obj.object_id)
+
+      val
     end
 
     def alive?
@@ -81,7 +86,13 @@ module PackServ
         when 'event'
           @event_queue
         else
-          @response_queue
+          id = @proto.extract_id(msg)
+
+          unless @response_queues.key?(id)
+            raise(Exceptions::InvalidId, id)
+          else
+            @response_queues[id]
+          end
         end.push(@proto.extract(msg))
       end
 
