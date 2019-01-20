@@ -21,7 +21,7 @@ module PackServ
 
     def write(packed)
       @io.write(frame_length(packed) + packed)
-    rescue Errno::EPIPE
+    rescue IOError, Errno::EPIPE
       false
     end
   end
