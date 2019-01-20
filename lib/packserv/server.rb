@@ -1,6 +1,7 @@
 module PackServ
   class Server
     def initialize(proto = nil)
+      @alive = true
       @proto = proto || DefaultProtocol
       @request_handler = ->(_) {}
       @conns = {}
@@ -27,7 +28,14 @@ module PackServ
       end
     end
 
+    def alive?
+      @alive
+    end
+
     def stop
+      return false unless alive?
+
+      @alive = false
       @conns.each_value { |c| c.each_value(&:close) }
 
       @threads.each(&:kill)
