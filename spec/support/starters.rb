@@ -13,7 +13,7 @@ module Starters
     promise = PackServ.serve(port)
     server = promise.value
 
-    server.handler = block_given? ? handler : method(:server_handler)
+    server.on_request(&(block_given? ? handler : method(:server_handler)))
 
     server
   end
@@ -24,9 +24,9 @@ module Starters
     promise = PackServ.connect('localhost', port)
     client = promise.value
 
-    client.handler = block_given? ? handler : lambda do |event|
+    client.on_event(&(block_given? ? handler : lambda do |event|
       client_events.push(event)
-    end
+    end))
 
     [client_events, client]
   end

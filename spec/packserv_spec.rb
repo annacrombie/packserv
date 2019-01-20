@@ -8,10 +8,10 @@ RSpec.describe PackServ do
     after(:all) { @server.stop }
 
     context 'the client dies' do
-      before(:all) { _, @client = connect_client }
+      before(:all) { _, @client_1 = connect_client }
 
       it 'wont affect the server' do
-        @client.disconnect
+        @client_1.disconnect
       end
     end
 

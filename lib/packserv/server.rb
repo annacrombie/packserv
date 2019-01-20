@@ -1,13 +1,15 @@
 module PackServ
   class Server
-    attr_accessor :handler
-
     def initialize(proto = nil)
       @proto = proto || DefaultProtocol
-      @handler = ->(_) {}
+      @request_handler = ->(_) {}
       @conns = {}
       @event_queue = Queue.new
       @threads = []
+    end
+
+    def on_request(&block)
+      @request_handler = block
     end
 
     def transmit(data)
@@ -53,8 +55,8 @@ module PackServ
     def handle(client)
       outgoing = setup_mailbox(client)
 
-      IOUnpacker.each_from(client, @proto) do |msg|
-        response = handler.(@proto.extract(msg))
+      IOUnpacker.new(client, @proto).each do |msg|
+        response = @request_handler.call(@proto.extract(msg))
 
         outgoing.push(response)
       end

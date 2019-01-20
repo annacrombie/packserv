@@ -1,23 +1,34 @@
 module PackServ
   class Client
-    attr_accessor :handler
-
     def initialize(proto = nil)
       @proto = proto || DefaultProtocol
 
-      @handler = ->(_) {}
+      @death_handler = @event_handler = ->(_) {}
       @event_queue = Queue.new
       @response_queue = Queue.new
       @outgoing_queue = Queue.new
 
       @threads = []
+      @alive = true
+    end
+
+    def on_event(&block)
+      @event_handler = block
+    end
+
+    def on_die(&block)
+      @death_handler = block
     end
 
     def connect(host, port)
       Concurrent::Promises.future do
         @conn = TCPSocket.new(host, port)
 
-        @threads << PromisedThread.new { _connect(@conn) }.value
+        setup_mailbox(@conn)
+
+        unpacker = IOUnpacker.new(@conn, @proto)
+
+        @threads << PromisedThread.new { unpack(unpacker) }.value
         @threads << PromisedThread.new { dispatch_events }.value
 
         self
@@ -25,22 +36,34 @@ module PackServ
     end
 
     def disconnect
+      @alive = false
       @threads.each(&:kill)
       @conn.close
     end
 
     def transmit(obj)
+      return unless alive?
+
       @outgoing_queue.push(obj)
 
       @response_queue.pop
     end
 
+    def alive?
+      @alive
+    end
+
     private
+
+    def die
+      @alive = false
+      @death_handler.call(self)
+    end
 
     def dispatch_events
       loop do
         thing = @event_queue.pop
-        handler.call(thing)
+        @event_handler.call(thing)
       end
     end
 
@@ -48,15 +71,12 @@ module PackServ
       packer = IOPacker.new(server, @proto)
 
       @threads << PromisedThread.new do
-        loop { packer.pack(@proto.create(p @outgoing_queue.pop)) }
+        loop { packer.pack(@proto.create(@outgoing_queue.pop)) }
       end.value
     end
 
-    def _connect(server)
-      setup_mailbox(server)
-
-      IOUnpacker.each_from(server, @proto) do |msg|
-        puts "got #{msg}"
+    def unpack(unpacker)
+      unpacker.each do |msg|
         case msg['type']
         when 'event'
           @event_queue
@@ -64,6 +84,8 @@ module PackServ
           @response_queue
         end.push(@proto.extract(msg))
       end
+
+      die
     end
   end
 end

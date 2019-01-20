@@ -4,23 +4,19 @@ module PackServ
 
     def_delegators :@io, :close
 
-    class << self
-      def each_from(io, proto)
-        iou = IOUnpacker.new(io, proto)
-
-        loop do
-          frame = iou.get_frame
-
-          break if frame.nil? || frame.empty?
-
-          yield(MessagePack.unpack(frame))
-        end
-      end
-    end
-
     def initialize(io, proto)
       @proto = proto
       @io = io
+    end
+
+    def each
+      until @io.closed? do
+        frame = get_frame
+
+        break if frame.nil? || frame.empty?
+
+        yield(MessagePack.unpack(frame))
+      end
     end
 
     def get_frame
