@@ -10,7 +10,8 @@ module Starters
   end
 
   def start_server(port = 12345, &handler)
-    server = PackServ.serve(port)
+    promise = PackServ.serve(port)
+    server = promise.value
 
     server.handler = block_given? ? handler : method(:server_handler)
 
@@ -20,7 +21,9 @@ module Starters
   def connect_client(port = 12345, &handler)
     client_events = Queue.new
 
-    client = PackServ.connect('localhost', port)
+    promise = PackServ.connect('localhost', port)
+    client = promise.value
+
     client.handler = block_given? ? handler : lambda do |event|
       client_events.push(event)
     end

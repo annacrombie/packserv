@@ -4,11 +4,10 @@ module PackServ
 
     def initialize(proto = nil)
       @proto = proto || DefaultProtocol
-
       @handler = ->(_) {}
-      @packers = {}
+      @conns = {}
       @event_queue = Queue.new
-      @threads = ThreadGroup.new
+      @threads = []
     end
 
     def transmit(data)
@@ -16,17 +15,25 @@ module PackServ
     end
 
     def serve(port)
-      server = TCPServer.new(port)
+      Concurrent::Promises.future do
+        @server = TCPServer.new(port)
 
-      @threads.add(Thread.new { _serve(server) })
-      @threads.add(Thread.new { deliver_events })
+        @threads << PromisedThread.new { _serve(@server) }.value
+        @threads << PromisedThread.new { deliver_events }.value
 
-      self
+        self
+      end
     end
 
     def stop
-      @threads.list.map(&:exit)
+      @conns.each_value { |c| c.each_value(&:close) }
+
+      @threads.each(&:kill)
+
+      @server.shutdown
+      @server.close
     end
+
 
     private
 
@@ -34,11 +41,11 @@ module PackServ
       packer   = IOPacker.new(client, @proto)
       outgoing = Queue.new
 
-      @threads.add(Thread.new do
+      @threads << Thread.new do
         loop { packer.pack(@proto.create(outgoing.pop)) }
-      end)
+      end
 
-      @packers[client.object_id] = packer
+      @conns[client.object_id][:packer] = packer
 
       outgoing
     end
@@ -56,14 +63,20 @@ module PackServ
     def deliver_events
       loop do
         data = @event_queue.pop
-        @packers.each { |_, k| k.pack(@proto.create(data, 'event')) }
+        @conns.each { |_, k| k[:packer].pack(@proto.create(data, 'event')) }
       end
     end
 
     def _serve(server)
       loop do
-        @threads.add(Thread.new(server.accept) { |client| handle(client) })
+        @threads <<
+          PromisedThread.new(server.accept) do |client|
+            @conns[client.object_id] = { io: client }
+            handle(client)
+          end.value
       end
+    rescue IOError
+      false
     end
   end
 end

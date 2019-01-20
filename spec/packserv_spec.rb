@@ -34,7 +34,7 @@ RSpec.describe PackServ do
   context 'in the real world' do
     before(:all) { @server_1 = start_server(21212) }
     it 'can gracefully handle a server crash' do
-      client = connect_client(21212)
+      _, client = connect_client(21212)
 
       @server_1.stop
 

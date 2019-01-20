@@ -1,3 +1,4 @@
+require 'concurrent-ruby'
 require 'socket'
 require 'msgpack'
 
@@ -6,6 +7,7 @@ require 'packserv/default_protocol'
 require 'packserv/exceptions'
 require 'packserv/io_packer'
 require 'packserv/io_unpacker'
+require 'packserv/promised_thread'
 require 'packserv/server'
 require 'packserv/version'
 

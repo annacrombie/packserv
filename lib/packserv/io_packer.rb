@@ -1,5 +1,9 @@
 module PackServ
   class IOPacker
+    extend Forwardable
+
+    def_delegators :@io, :close
+
     def initialize(io, proto)
       @proto = proto
       @io = io
@@ -17,6 +21,8 @@ module PackServ
 
     def write(packed)
       @io.write(frame_length(packed) + packed)
+    rescue Errno::EPIPE
+      false
     end
   end
 end
