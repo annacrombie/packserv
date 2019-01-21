@@ -11,5 +11,11 @@ module PackServ
         super(msg)
       end
     end
+
+    class InvalidException < StandardError
+      def initialize(msg)
+        super(msg)
+      end
+    end
   end
 end
