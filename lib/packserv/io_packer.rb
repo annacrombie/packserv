@@ -11,7 +11,12 @@ module PackServ
     end
 
     def pack(obj)
-      write(@packer.pack(obj).to_s)
+      obj = @packer.pack(obj).to_s
+    rescue StandardError => e
+      raise(e)
+    else
+      write(obj)
+    ensure
       @packer.clear
     end
 
