@@ -8,7 +8,7 @@ module Starters
       'see ya'
     else
       sleep(rand * 0.01)
-      message.to_i * 2
+      message * 2
     end
   end
 

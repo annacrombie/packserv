@@ -40,6 +40,7 @@ RSpec.describe PackServ do
       @server_1.stop
 
       client.transmit('msg')
+      client.disconnect
     end
 
     it 'wont get confused' do
@@ -52,9 +53,10 @@ RSpec.describe PackServ do
 
         [q, Concurrent::Promises.delay { q.push(client.transmit(n)) }, n]
       end.each { |_, p, _| p.touch }.each do |q, _, n|
-        puts "checking #{n}"
         expect(q.pop).to eq (n * 2)
       end
+
+      client.disconnect
     end
 
     it 'handles invalid messages' do
@@ -73,7 +75,29 @@ RSpec.describe PackServ do
          'payload' => nil
       )
 
-      puts q.pop
+      expect(q.pop.class).to eql(PackServ::Exceptions::InvalidMessage)
+    end
+
+    it 'raises errors on the client side' do
+      _, client = connect_client(21212)
+
+      expect { client.transmit(Object) }.to raise_error(NoMethodError)
+
+      client.disconnect
+    end
+
+    it 'raises errors on the server side' do
+      _, client = connect_client(21212)
+
+      expect { p client.transmit({}) }.to raise_error(NoMethodError)
+      client.disconnect
+    end
+
+    it 'does both' do
+      _, client = connect_client(21212)
+      expect { client.transmit(Object) }.to raise_error(NoMethodError)
+      expect { p client.transmit({}) }.to raise_error(NoMethodError)
+      client.disconnect
     end
   end
 end
