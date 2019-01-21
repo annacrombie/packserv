@@ -12,7 +12,7 @@ module PackServ
       @outgoing_queue = Queue.new
 
       @threads = []
-      @alive = true
+      @alive = false
     end
 
     def on_event(&block)
@@ -24,8 +24,11 @@ module PackServ
     end
 
     def connect(host, port)
+      return if alive?
+
       Concurrent::Promises.future do
         @conn = TCPSocket.new(host, port)
+        @alive = true
 
         setup_mailbox(@conn)
 

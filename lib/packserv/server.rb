@@ -3,7 +3,7 @@ module PackServ
     attr_writer :request_handler
 
     def initialize(proto = nil)
-      @alive = true
+      @alive = false
       @proto = proto || DefaultProtocol
       @request_handler = ->(_) {}
       @conns = {}
@@ -20,8 +20,11 @@ module PackServ
     end
 
     def serve(port)
+      return if alive?
+
       Concurrent::Promises.future do
         @server = TCPServer.new(port)
+        @alive = true
 
         @threads << PromisedThread.new { _serve(@server) }.value
         @threads << PromisedThread.new { deliver_events }.value
