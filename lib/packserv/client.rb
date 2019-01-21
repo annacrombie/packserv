@@ -2,6 +2,7 @@ module PackServ
   class Client
     def initialize(proto = nil)
       @proto = proto || DefaultProtocol
+      @id = Concurrent::AtomicFixnum.new
 
       @death_handler = @event_handler = ->(_) {}
       @event_queue = Queue.new
@@ -43,13 +44,16 @@ module PackServ
 
     def transmit(obj)
       return unless alive?
+      id = next_id
 
-      rq = @response_queues[obj.object_id] = Queue.new
+      rq = @response_queues[id] = Queue.new
 
-      @outgoing_queue.push(obj)
+      @outgoing_queue.push([obj, :request, id])
 
       val = rq.pop
-      @response_queues.delete(obj.object_id)
+      @response_queues.delete(id)
+
+      raise val if val.is_a?(StandardError)
 
       val
     end
@@ -59,6 +63,10 @@ module PackServ
     end
 
     private
+
+    def next_id
+      @id.increment
+    end
 
     def die
       @alive = false
@@ -76,23 +84,33 @@ module PackServ
       packer = IOPacker.new(server, @proto)
 
       @threads << PromisedThread.new do
-        loop { packer.pack(@proto.create(@outgoing_queue.pop)) }
+        loop do
+          obj = @outgoing_queue.pop
+
+          begin
+            packer.pack(@proto.create(*obj))
+          rescue StandardError => e
+            response_queue(obj[2]).push(e)
+          end
+        end
       end.value
+    end
+
+    def response_queue(id)
+      unless @response_queues.key?(id)
+        raise(Exceptions::InvalidId, id)
+      else
+        @response_queues[id]
+      end
     end
 
     def unpack(unpacker)
       unpacker.each do |msg|
-        case msg['type']
+        case @proto.typeof(msg)
         when 'event'
           @event_queue
-        else
-          id = @proto.extract_id(msg)
-
-          unless @response_queues.key?(id)
-            raise(Exceptions::InvalidId, id)
-          else
-            @response_queues[id]
-          end
+        when 'response', 'exception'
+          response_queue(@proto.extract_id(msg))
         end.push(@proto.extract(msg))
       end
 
