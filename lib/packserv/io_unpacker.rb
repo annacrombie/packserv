@@ -5,6 +5,7 @@ module PackServ
     def_delegators :@io, :close
 
     def initialize(io, proto)
+      @unpacker = PackServ.msgpack_factory.unpacker
       @proto = proto
       @io = io
     end
@@ -15,7 +16,17 @@ module PackServ
 
         break if frame.nil? || frame.empty?
 
-        yield(MessagePack.unpack(frame))
+        @unpacker.feed(frame)
+
+        obj = @unpacker.unpack
+        exception =
+          if @proto.valid?(obj)
+            nil
+          else
+            Exceptions::InvalidMessage.new(@proto.invalid_reason(obj))
+          end
+
+        yield(obj, exception)
       end
     end
 
@@ -29,7 +40,7 @@ module PackServ
 
     def get_frame_length
       @io.read(@proto::HEADER_LENGTH).then { |g| g.nil? ? '' : g }.to_i(16)
-    rescue IOError
+    rescue IOError, Errno::ECONNRESET
       0
     end
   end
