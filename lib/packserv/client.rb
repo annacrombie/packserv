@@ -62,6 +62,7 @@ module PackServ
 
       val
     end
+    alias request transmit
 
     def alive?
       @alive

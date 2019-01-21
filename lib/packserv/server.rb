@@ -18,6 +18,7 @@ module PackServ
     def transmit(data)
       @event_queue.push(data)
     end
+    alias event transmit
 
     def serve(port)
       return if alive?
