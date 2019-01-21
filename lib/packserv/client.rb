@@ -1,5 +1,7 @@
 module PackServ
   class Client
+    attr_writer :event_handler, :death_handler
+
     def initialize(proto = nil)
       @proto = proto || DefaultProtocol
       @id = Concurrent::AtomicFixnum.new

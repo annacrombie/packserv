@@ -1,5 +1,7 @@
 module PackServ
   class Server
+    attr_writer :request_handler
+
     def initialize(proto = nil)
       @alive = true
       @proto = proto || DefaultProtocol
