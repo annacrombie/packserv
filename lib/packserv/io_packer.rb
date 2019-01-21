@@ -5,12 +5,14 @@ module PackServ
     def_delegators :@io, :close
 
     def initialize(io, proto)
+      @packer = PackServ.msgpack_factory.packer
       @proto = proto
       @io = io
     end
 
     def pack(obj)
-      write(MessagePack.pack(obj))
+      write(@packer.pack(obj).to_s)
+      @packer.clear
     end
 
     private
