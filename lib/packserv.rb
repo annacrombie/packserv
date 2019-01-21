@@ -19,10 +19,21 @@ module PackServ
           .then do |f|
             f.register_type(
               0x01,
-              Exception,
-              packer: -> (e) { e.to_s },
-              unpacker: -> (s) { s }
+              StandardError,
+              packer: -> (e) { MessagePack.pack({ class: e.class.name, msg: e.to_s }) },
+              unpacker: lambda do |s|
+                h = MessagePack.unpack(s)
+
+                k = const_defined?(h['class']) ? const_get(h['class']) : nil
+
+                if StandardError > k
+                  k.new(h['msg'])
+                else
+                  Exceptions::InvalidException.new("no such exception: #{h['class']}")
+                end
+              end
             )
+
             f
           end
       )
