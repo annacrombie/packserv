@@ -13,6 +13,21 @@ require 'packserv/version'
 
 module PackServ
   class << self
+    def msgpack_factory
+      @fac ||= (
+        MessagePack::Factory.new
+          .then do |f|
+            f.register_type(
+              0x01,
+              Exception,
+              packer: -> (e) { e.to_s },
+              unpacker: -> (s) { s }
+            )
+            f
+          end
+      )
+    end
+
     def connect(host, port)
       Client.new.connect(host, port)
     end
