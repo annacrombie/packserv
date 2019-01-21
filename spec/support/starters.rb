@@ -6,6 +6,9 @@ module Starters
       'hi'
     when 'goodbye'
       'see ya'
+    else
+      sleep(rand * 0.01)
+      message.to_i * 2
     end
   end
 
