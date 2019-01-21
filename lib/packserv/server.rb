@@ -52,7 +52,7 @@ module PackServ
       outgoing = Queue.new
 
       @threads << Thread.new do
-        loop { packer.pack(@proto.create(outgoing.pop)) }
+        loop { packer.pack(@proto.create(*outgoing.pop)) }
       end
 
       @conns[client.object_id][:packer] = packer
@@ -63,10 +63,19 @@ module PackServ
     def handle(client)
       outgoing = setup_mailbox(client)
 
-      IOUnpacker.new(client, @proto).each do |msg|
-        response = @request_handler.call(@proto.extract(msg))
+      IOUnpacker.new(client, @proto).each do |msg, exception|
+        response, type =
+          if exception.nil?
+            begin
+              [@request_handler.call(@proto.extract(msg)), :response]
+            rescue StandardError => e
+              [e, :exception]
+            end
+          else
+            [exception, :exception]
+          end
 
-        outgoing.push(response)
+        outgoing.push([response, type, @proto.extract_id(msg)])
       end
     end
 
