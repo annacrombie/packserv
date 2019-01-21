@@ -26,6 +26,10 @@ module PackServ
       end
     end
 
+    def typeof(msg)
+      msg['type']
+    end
+
     def valid?(msg)
       msg.is_a?(Hash) &&
         msg.keys == %w[ver id type payload] &&
