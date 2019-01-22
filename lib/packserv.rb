@@ -1,4 +1,5 @@
 require 'concurrent-ruby'
+require 'forwardable'
 require 'socket'
 require 'msgpack'
 
