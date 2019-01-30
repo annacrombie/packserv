@@ -1,4 +1,7 @@
-require 'concurrent-ruby'
+require 'concurrent/executor/fixed_thread_pool'
+require 'concurrent/executor/timer_set'
+require 'concurrent/promises'
+
 require 'forwardable'
 require 'socket'
 require 'msgpack'
